@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>مملكة التعلّم</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin: 0;
+      color: #2d3436;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      color: #636e72;
+      margin: 10px 0 20px;
+      font-size: 16px;
+    }
+
+    .card {
+      background: #f8f9fa;
+      border-radius: 22px;
+      padding: 18px;
+      margin-top: 15px;
+    }
+
+    .question {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 18px 0;
+      color: #2d3436;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    button {
+      border: none;
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 19px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #74b9ff;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      background: #0984e3;
+    }
+
+    .score-box {
+      margin-top: 15px;
+      font-size: 18px;
+      color: #2d3436;
+      font-weight: bold;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 22px;
+      font-weight: bold;
+      min-height: 32px;
+    }
+
+    .correct {
+      color: #00b894;
+    }
+
+    .wrong {
+      color: #d63031;
+    }
+
+    .start-btn, .next-btn {
+      width: 100%;
+      margin-top: 18px;
+      background: #fd79a8;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .emoji {
+      font-size: 56px;
+      margin: 10px 0;
+    }
+
+    .level {
+      margin-top: 10px;
+      background: #ffeaa7;
+      padding: 10px;
+      border-radius: 16px;
+      font-weight: bold;
+      color: #2d3436;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>مملكة التعلّم 👑</h1>
+    <p class="subtitle">لعبة تعليمية ممتعة للأطفال</p>
+
+    <div id="startScreen" class="card">
+      <div class="emoji">🧠✨</div>
+      <h2>جاهز نبدأ؟</h2>
+      <p>جاوب على الأسئلة واجمع النجوم!</p>
+      <button class="start-btn" onclick="startGame()">ابدأ اللعبة</button>
+    </div>
+
+    <div id="gameScreen" class="card hidden">
+      <div class="level" id="levelText">المستوى 1</div>
+      <div class="emoji" id="questionEmoji">🍎</div>
+      <div class="question" id="questionText"></div>
+
+      <div class="options" id="optionsBox"></div>
+
+      <div class="message" id="message"></div>
+      <div class="score-box">⭐ النقاط: <span id="score">0</span></div>
+
+      <button class="next-btn hidden" id="nextBtn" onclick="nextQuestion()">السؤال التالي</button>
+    </div>
+
+    <div id="endScreen" class="card hidden">
+      <div class="emoji">🏆</div>
+      <h2>انتهت اللعبة!</h2>
+      <p id="finalScore"></p>
+      <button class="start-btn" onclick="restartGame()">العب مرة ثانية</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        level: "المستوى 1",
+        emoji: "🍎",
+        question: "كم تفاحة هنا؟ 🍎🍎🍎",
+        options: ["2", "3", "4", "5"],
+        answer: "3"
+      },
+      {
+        level: "المستوى 1",
+        emoji: "🔤",
+        question: "ما هو أول حرف في كلمة أسد؟",
+        options: ["ب", "أ", "م", "س"],
+        answer: "أ"
+      },
+      {
+        level: "المستوى 2",
+        emoji: "➕",
+        question: "كم ناتج 2 + 3؟",
+        options: ["4", "5", "6", "7"],
+        answer: "5"
+      },
+      {
+        level: "المستوى 2",
+        emoji: "🌈",
+        question: "ما لون السماء غالبًا؟",
+        options: ["أزرق", "أحمر", "أسود", "بني"],
+        answer: "أزرق"
+      },
+      {
+        level: "المستوى 3",
+        emoji: "🐱",
+        question: "أي حيوان يقول: مياو؟",
+        options: ["كلب", "قطة", "حصان", "بطة"],
+        answer: "قطة"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
+
+    function startGame() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("gameScreen").classList.remove("hidden");
+      showQuestion();
+    }
+
+    function showQuestion() {
+      answered = false;
+
+      const q = questions[currentQuestion];
+
+      document.getElementById("levelText").textContent = q.level;
+      document.getElementById("questionEmoji").textContent = q.emoji;
+      document.getElementById("questionText").textContent = q.question;
+      document.getElementById("message").textContent = "";
+      document.getElementById("message").className = "message";
+      document.getElementById("nextBtn").classList.add("hidden");
+
+      const optionsBox = document.getElementById("optionsBox");
+      optionsBox.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option);
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      if (answered) return;
+
+      answered = true;
+      const q = questions[currentQuestion];
+      const message = document.getElementById("message");
+
+      if (selected === q.answer) {
+        score += 10;
+        document.getElementById("score").textContent = score;
+        message.textContent = "إجابة صحيحة! ممتاز 🎉";
+        message.classList.add("correct");
+      } else {
+        message.textContent = "قريب! الإجابة الصحيحة هي: " + q.answer;
+        message.classList.add("wrong");
+      }
+
+      document.getElementById("nextBtn").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+
+      if (currentQuestion < questions.length) {
+        showQuestion();
+      } else {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      document.getElementById("gameScreen").classList.add("hidden");
+      document.getElementById("endScreen").classList.remove("hidden");
+      document.getElementById("finalScore").textContent =
+        "مجموع نقاطك هو: " + score + " من " + (questions.length * 10);
+    }
+
+    function restartGame() {
+      currentQuestion = 0;
+      score = 0;
+      answered = false;
+
+      document.getElementById("score").textContent = score;
+      document.getElementById("endScreen").classList.add("hidden");
+      document.getElementById("gameScreen").classList.remove("hidden");
+
+      showQuestion();
+    }
+  </script>
+</body>
+</html>
